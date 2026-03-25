@@ -395,7 +395,7 @@ async def h_game(e):
             await send_guess(e.client, e.chat_id, g, s)
         return
 
-    if "🟥" not in e.raw_text and "🟩" not in e.raw_text and "🟨" not in e.raw_text:
+    if not any(sym in e.raw_text for sym in ["🟥", "🟩", "🟨", "⬛", "⬜"]):
         return
 
     async with s.lock:
@@ -406,16 +406,26 @@ async def h_game(e):
         new_info = False
         for line in lines:
             p = "".join('G' if c == '🟩' else 'Y' if c == '🟨' else 'B' for c in line if c in "🟩🟨🟥⬛⬜")
-            if len(p) == s.length:
-                word = "".join(c for c in clean_text(line) if c.isalpha())
-                if len(word) > s.length:
-                    word = word[-s.length:]
-                if len(word) == s.length:
-                    key = f"{word}-{p}"
-                    if key not in s.processed:
-                        s.solver.process(word, p)
-                        s.processed.add(key)
-                        new_info = True
+            if len(p) != s.length:
+                continue
+
+            # Prefer explicit word from line; fallback to last guess (common for emoji-only response formats)
+            word = "".join(c for c in clean_text(line) if c.isalpha())
+            if len(word) > s.length:
+                word = word[-s.length:]
+            if len(word) != s.length:
+                word = s.last_guess
+
+            if not word or len(word) != s.length:
+                continue
+
+            key = f"{word}-{p}"
+            if key in s.processed:
+                continue
+
+            s.solver.process(word, p)
+            s.processed.add(key)
+            new_info = True
 
         if "Congrats" in e.raw_text or "correct" in e.raw_text.lower() or "🟩" * s.length in e.raw_text:
             s.done += 1
